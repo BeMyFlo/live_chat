@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App chat</title>
+    <style>
+        .chat-message {
+            list-style: none;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        #chat-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .chat-message .message-content {
+            background-color: #f2f2f2;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .chat-message.self .message-content {
+            background-color: #cfeeff;
+            align-self: flex-end;
+        }
+
+        #chat-form {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        #chat-mes {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        #send-chat {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #send-chat:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>App Chat</h1>
+    <div id="chat-container">
+        <ul id="messages"></ul>
+    </div>
+    <form id="chat-form">
+        <input type="text" id="chat-mes" placeholder="Nhập tin nhắn...">
+        <button type="submit" id="send-chat">Gửi</button>
+    </form>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    const name = prompt('What is your name ?');
+    const chatForm = document.querySelector('#chat-form');
+    const chatMes = document.querySelector('#chat-mes');
+    const chatContainer = document.querySelector('#chat-container');
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const message = chatMes.value;
+        socket.emit('on-chat', {
+            name,
+            message
+        });
+        chatMes.value = '';
+    });
+
+    const messages = document.querySelector('#messages');
+    socket.on('user-chat', (message) => {
+        const chatItem = document.createElement('li');
+        chatItem.classList.add('chat-message');
+
+        const messageContent = document.createElement('div');
+        messageContent.classList.add('message-content');
+        messageContent.textContent = `${message.name} : ${message.message}`;
+
+        if (message.name === name) {
+            chatItem.classList.add('self');
+            messageContent.classList.add('self');
+        }
+
+        chatItem.appendChild(messageContent);
+        messages.appendChild(chatItem);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+</script>
+</html>
